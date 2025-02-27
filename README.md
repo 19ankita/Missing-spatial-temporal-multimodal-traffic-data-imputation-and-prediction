@@ -51,7 +51,7 @@ sbatch slurmjob.sh
 If you use this repository, please consider citing:
 
 ```
-@inproceedings{your_citation,
+@inproceedings{grin_t4c22,
   title={Missing Spatial-Temporal Multimodal Traffic Data Imputation and Prediction},
   author={Ankita Sarkar},
   booktitle={TU Dortmund},
