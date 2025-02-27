@@ -20,6 +20,15 @@ For missing data imputation and traffic prediction, we use the **GRIN model** de
   - Recurrent Neural Networks (RNNs) for temporal patterns
   - Imputation and prediction in an end-to-end pipeline
 
+## 🌍 Multimodal Geographic Data Integration
+In addition to traffic data, we incorporate geographic information from OpenStreetMap (OSM) building data to enhance the model's ability to impute missing values:
+
+- 📁 **Geographic Data Source:** [Geofabrik OpenStreetMap (OSM) Building Data](https://download.geofabrik.de/europe/united-kingdom/england.html)
+- 🏢 **Features Extracted:**
+  - **Building density**: Number of buildings per unit area
+  - **Building type diversity**: Residential, commercial, educational, etc.
+  - **Proximity to infrastructure**: Influence of buildings on road traffic
+
 ## 🚀 Installation
 To set up the environment, install the required dependencies:
 
@@ -34,18 +43,25 @@ Or install via pip:
 pip install -r requirements.txt
 ```
 
-## 🔧 Usage
-To run the imputation model:
+## 🛠 Setup and Running the Model
+1. **Download the datasets:**
+   - Traffic4cast data from [IARAI](https://github.com/iarai/NeurIPS2022-traffic4cast)
+   - Building footprint data from [Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england.html)
 
-```bash
-python run_imputation.py --config config/grin/traffic_block.yaml --dataset-name traffic_block --in-sample True 
-```
+2. **Preprocess the data:**
+   ```bash
+   python preprocess_data.py --config config/config.yaml
+   ```
 
-To submit jobs on an HPC cluster (SLURM):
+3. **Run the imputation model:**
+   ```bash
+   python run_imputation.py --config config/grin/traffic_block.yaml --dataset-name traffic_block --in-sample True 
+   ```
 
-```bash
-sbatch slurmjob.sh
-```
+4. **Submit jobs on an HPC cluster (SLURM):**
+   ```bash
+   sbatch slurmjob.sh
+   ```
 
 ## 📜 Citation
 If you use this repository, please consider citing:
@@ -57,4 +73,4 @@ If you use this repository, please consider citing:
   booktitle={TU Dortmund},
   year={2025}
 }
-
+```
