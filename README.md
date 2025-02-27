@@ -1,9 +1,7 @@
-# Missing-spatial-temporal-multimodal-traffic-data-imputation-and-prediction
-
 # Missing Spatial-Temporal Multimodal Traffic Data Imputation and Prediction
 
 ## 📌 Introduction
-This repository focuses on the **imputation and prediction of missing multimodal traffic data** using Graph Neural Networks (GNNs). We leverage the **Traffic4cast NeurIPS 2022 dataset** and implement **GRIN (Graph Recurrent Imputation Network)** to reconstruct and predict traffic data efficiently. 
+This repository focuses on the **imputation and prediction of missing multimodal traffic data** using Graph Neural Networks (GNNs). We leverage the **Traffic4cast NeurIPS 2022 dataset** and implement **GRIN (Graph Recurrent Imputation Network)** to efficiently reconstruct and predict traffic data. 
 
 ## 📊 Dataset: NeurIPS 2022 Traffic4cast
 We use the **Traffic4cast dataset** provided by the **Institute of Advanced Research in Artificial Intelligence (IARAI)**. This dataset contains spatiotemporal traffic data from multiple cities, recorded at high resolution. 
@@ -40,7 +38,7 @@ pip install -r requirements.txt
 To run the imputation model:
 
 ```bash
-python run_imputation.py --config config/config.yaml
+python run_imputation.py --config config/grin/traffic_block.yaml --dataset-name traffic_block --in-sample True 
 ```
 
 To submit jobs on an HPC cluster (SLURM):
@@ -55,8 +53,8 @@ If you use this repository, please consider citing:
 ```
 @inproceedings{your_citation,
   title={Missing Spatial-Temporal Multimodal Traffic Data Imputation and Prediction},
-  author={Your Name},
-  booktitle={Your Conference/Journal},
+  author={Ankita Sarkar},
+  booktitle={TU Dortmund},
   year={2025}
 }
 
