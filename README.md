@@ -7,27 +7,27 @@ This repository focuses on the **imputation and prediction of missing multimodal
 I used the **Traffic4cast dataset** provided by the **Institute of Advanced Research in Artificial Intelligence (IARAI)**. This dataset contains spatiotemporal traffic data from multiple cities, recorded at high resolution. 
 
 - 📁 **Dataset Repository:** [NeurIPS2022-traffic4cast](https://github.com/iarai/NeurIPS2022-traffic4cast)
-- 🏙 **Cities Covered:** London, Madrid, Melbourne, etc.
-- ⏳ **Time Granularity:** 5-minute intervals
-- 🚘 **Traffic Data:** Flow, speed, and volume of vehicles
+- 🏙 **Cities Covered:** London.
+- ⏳ **Time Granularity:** 15-minute intervals.
+- 🚘 **Traffic Data:** Flow, speed, and volume of vehicles.
 
 ## 🔍 Algorithm: Graph Recurrent Imputation Network (GRIN)
-For missing data imputation and traffic prediction, we use the **GRIN model** developed by the Graph Machine Learning Group. GRIN is designed to reconstruct missing traffic data using a **spatiotemporal graph-based approach**.
+For missing data imputation, I used the **GRIN model** developed by the Graph Machine Learning Group. GRIN is designed to reconstruct missing traffic data using a **spatiotemporal graph-based approach**. Subsequently, I used the **Graph Attention Network (GAT)** to predict the **Congesion Class (CC)** and **Estimated time of Arrival(ETA)** based on the compete dataset.
 
 - 📁 **Algorithm Repository:** [GRIN](https://github.com/Graph-Machine-Learning-Group/grin)
 - 📌 **Key Features:**
-  - Graph Neural Networks (GNNs) for spatial dependencies
-  - Recurrent Neural Networks (RNNs) for temporal patterns
-  - Imputation and prediction in an end-to-end pipeline
+  - Graph Neural Networks (GNNs) for spatial dependencies.
+  - Recurrent Neural Networks (RNNs) for temporal patterns.
+  - Imputation and prediction in an end-to-end pipeline.
 
 ## 🌍 Multimodal Geographic Data Integration
-In addition to traffic data, we incorporate geographic information from OpenStreetMap (OSM) building data to enhance the model's ability to impute missing values:
+In addition to traffic data, I incorporated geographic information from OpenStreetMap (OSM) building data of London to enhance the model's ability to impute missing values:
 
 - 📁 **Geographic Data Source:** [Geofabrik OpenStreetMap (OSM) Building Data](https://download.geofabrik.de/europe/united-kingdom/england.html)
 - 🏢 **Features Extracted:**
-  - **Building density**: Number of buildings per unit area
+  - **Building density**: Number of buildings per unit area.
   - **Building type diversity**: Residential, commercial, educational, etc.
-  - **Proximity to infrastructure**: Influence of buildings on road traffic
+  - **Proximity to infrastructure**: Influence of buildings on road traffic.
 
 ## 🚀 Installation
 To set up the environment, install the required dependencies:
