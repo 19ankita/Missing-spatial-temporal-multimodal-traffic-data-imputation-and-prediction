@@ -48,12 +48,7 @@ pip install -r requirements.txt
    - Traffic4cast data from [IARAI](https://github.com/iarai/NeurIPS2022-traffic4cast)
    - Building footprint data from [Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england.html)
 
-2. **Preprocess the data:**
-   ```bash
-   python preprocess_data.py --config config/config.yaml
-   ```
-
-3. **Run the imputation model:**
+2. **Run the imputation model:**
    ```bash
    python run_imputation.py --config config/grin/traffic_block.yaml --dataset-name traffic_block --in-sample True 
    ```
