@@ -1,0 +1,2 @@
+from .grin import GRINet
+
