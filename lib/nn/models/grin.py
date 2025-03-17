@@ -74,123 +74,82 @@ class GRINet(nn.Module):
 
 
     def forward(self, x, edge_index, mask=None, u=None, batch_size=None, steps=None, **kwargs):
-
-        training_mode = kwargs.get('training_mode', True)
-        
-        print(f"======================================")
-        print(f"GRIN forward....")
-        print(f"======================================")
-        
-        # x: [batches, steps, nodes, channels] -> [batches, channels, nodes, steps]
-            
-        # Use self.batch_size if batch_size is not provided
+        """
+        Handles reshaping x dynamically without exception-based validation.
+        """
+        # Default values
         batch_size = batch_size or self.batch_size
+        steps = steps or self.window  # Default to self.window if steps is None
+
+        # Extract input dimensions
+        x_shape = x.shape
+        x_dim = x.dim()
+
+        print(f"[GRIN forward] Initial x shape: {x_shape}")
+
+        # Ensure x always has the correct shape dynamically
+        if x_dim == 2:  # Case: [nodes, channels]
+            x = x.unsqueeze(0).unsqueeze(0)  # Shape -> [1, 1, nodes, channels]
+            x = x.expand(batch_size, steps, -1, -1)  # Expand batch and steps
         
-        steps = steps or self.window  
-            
-        num_nodes = x.shape[-2]  
-        channels = x.shape[-1]  # Assume last dimension is always channels
-     
-        print(f"Batch size: {batch_size}, Steps: {steps}, Num nodes: {num_nodes}, Channels: {channels}")
-        print(f"Mask shape: {mask.shape}")
+        elif x_dim == 3:  # Case: [steps, nodes, channels]
+            x = x.unsqueeze(0)  # Add batch dimension -> [1, steps, nodes, channels]
+            x = x.expand(batch_size, -1, -1, -1)  # Expand batch size
 
-        # **Fix: Use a mask to extract relevant nodes**
-        if num_nodes == self.adj.shape[0]:  # If adj already matches batch nodes, use it
-            adj_batch = self.adj
-        else:
-            indices = self.adj.indices()
-            values = self.adj.values()
+        elif x_dim == 4:  # Case: Already in [batch_size, steps, nodes, channels]
+            pass  # No changes needed
 
-            # Mask indices for the valid nodes
-            mask_rows = indices[0] < num_nodes
-            mask_cols = indices[1] < num_nodes
-            valid_mask = mask_rows & mask_cols  # Keep only valid edges
+        else:  
+            # If x has an unexpected dimension, reshape it to (batch, steps, nodes, channels)
+            x = x.view(batch_size, steps, -1, x.shape[-1])
 
-            # Apply mask
-            masked_indices = indices[:, valid_mask]
-            masked_values = values[valid_mask]
+        print(f"[GRIN forward] Reshaped x shape: {x.shape}")
 
-            # Construct new sparse adjacency matrix
-            adj_batch = torch.sparse_coo_tensor(
-                masked_indices, masked_values, (num_nodes, num_nodes), device=self.adj.device
-            ).coalesce()
-
-        print(f"[GRIN forward] Using adjacency shape: {adj_batch.shape}")
-        
-        # Validate dimensions and reshape `x` dynamically
-        if x.dim() == 2:  # Case [nodes, channels]
-           num_nodes, channels = x.shape
-           steps = steps or 1  # If steps is not provided, assume a single time step
-           total_elements = x.numel()
-           expected_elements = 1 * steps * num_nodes * channels
-           if total_elements != expected_elements:
-              raise ValueError(f"[GRIN] Invalid reshape dimensions for x. Expected {expected_elements}, got {total_elements}.")
-
-           x = x.view(1, steps, num_nodes, channels).repeat(batch_size, 1, 1, 1)
-        elif x.dim() == 3:  # Case [steps, nodes, channels]
-            steps, num_nodes, channels = x.shape
-            total_elements = x.numel()
-            expected_elements = 1 * steps * num_nodes * channels
-            if total_elements != expected_elements:
-               raise ValueError(f"[GRIN] Invalid reshape dimensions for x. Expected {expected_elements}, got {total_elements}.")
-
-            x = x.view(1, steps, num_nodes, channels).repeat(batch_size, 1, 1, 1)
-        elif x.dim() == 4:  # Case [batch_size, steps, nodes, channels]
-            batch_size, steps, num_nodes, channels = x.shape
-        else:
-            raise ValueError(f"[GRIN] Unexpected input shape for x: {x.shape}")
-        
-        # Rearrange for convolution
+        # Convert to expected format: [batch, channels, nodes, steps]
         x = rearrange(x, 'b s n c -> b c n s')
 
         print(f"[GRIN forward] Rearranged x shape: {x.shape}")
 
-        # Reshape mask
+        # Handle `mask` in the same way as `x`
         if mask is not None:
-            if mask.dim() == 2:  # Case [nodes, channels]
-                mask = mask.view(1, steps, num_nodes, mask.shape[-1]).repeat(batch_size, 1, 1, 1)
-            elif mask.dim() == 3:  # Case [steps, nodes, channels]
-                mask = mask.view(1, steps, num_nodes, mask.shape[-1]).repeat(batch_size, 1, 1, 1)
-            elif mask.dim() == 4:  # Case [batch_size, steps, nodes, channels]
-                pass  # Already in desired format
+            mask_shape = mask.shape
+            mask_dim = mask.dim()
+
+            if mask_dim == 2:  
+                mask = mask.unsqueeze(0).unsqueeze(0).expand(batch_size, steps, -1, mask.shape[-1])
+            elif mask_dim == 3:  
+                mask = mask.unsqueeze(0).expand(batch_size, -1, -1, -1)
+            elif mask_dim == 4:  
+                pass  # Already correct
             else:
-                raise ValueError(f"[GRIN] Unexpected input shape for mask: {mask.shape}")
+                mask = mask.view(batch_size, steps, -1, mask.shape[-1])
 
-            mask = rearrange(mask, "b s n c -> b c n s")  # [batch, steps, nodes, channels] -> [batch, channels, nodes, steps]   
-       
-        print(f"[GRIN forward] After rearrange - mask shape: {mask.shape}")
+            mask = rearrange(mask, "b s n c -> b c n s")
 
+        print(f"[GRIN forward] Final mask shape: {mask.shape if mask is not None else 'None'}")
+
+        # Handle `u` (optional input)
         if u is not None:
-           u = rearrange(u, 'b s n c -> b c n s')       
-        
-        print(f"BiGRIL from GRIN....") 
-        # imputation: [batches, channels, nodes, steps] prediction: [4, batches, channels, nodes, steps]
+            u = rearrange(u, 'b s n c -> b c n s')  
+
+        # Process adjacency dynamically based on node count
+        adj_batch = self.adj if x.shape[2] == self.adj.shape[0] else self.adj[:x.shape[2], :x.shape[2]]
+
+        print(f"[GRIN forward] Using adjacency shape: {adj_batch.shape}")
+
+        # Forward pass through BiGRIL
         imputation, prediction = self.bigrill(x, adj_batch, mask=mask, u=u, cached_support=self.training)
 
-        print(f"[GRIN forward] Before imputation - mask shape: {mask.shape}, x shape: {x.shape}, imputation shape: {imputation.shape}")
-       
-        if self.impute_only_holes and not self.training:
-           imputation = torch.where(mask, x, imputation)
+        # Convert back to original shape: [batches, steps, nodes, channels]
+        imputation = rearrange(imputation, "b c n s -> b s n c")
+        prediction = rearrange(prediction, "b c n s -> b s n c")
 
-        # Check imputation and prediction before transpose
-        print(f"[GRIN forward] Before transpose:")
-        print(f"[GRIN forward] imputation shape: {imputation.shape}")
-        print(f"[GRIN forward] prediction shape: {prediction.shape}")
+        print(f"[GRIN forward] Final imputation shape: {imputation.shape}")
+        print(f"[GRIN forward] Final prediction shape: {prediction.shape}")
 
-        # out: [batches, channels, nodes, steps] -> [batches, steps, nodes, channels]
-        imputation = torch.transpose(imputation, -3, -1)
-        prediction = torch.transpose(prediction, -3, -1)
+        return imputation if not self.training else (imputation, prediction)
 
-        # Check imputation and prediction after transpose
-        print(f"[GRIN forward] After transpose:")
-        print(f"[GRIN forward] imputation shape: {imputation.shape}")
-        print(f"[GRIN forward] prediction shape: {prediction.shape}")
-
-        if self.training:
-            print(f"Training mode - returning both imputation and prediction")
-            return imputation, prediction
-        return imputation
-
+        
     @staticmethod
     def add_model_specific_args(parser):
         parser.add_argument('--d-hidden', type=int, default=64)

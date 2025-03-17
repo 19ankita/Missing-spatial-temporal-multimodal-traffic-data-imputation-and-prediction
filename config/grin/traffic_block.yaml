@@ -10,7 +10,7 @@ scaling_axis: 'global'  # ['channels', 'global']
 scaled_target: True
 
 epochs: 1
-samples_per_epoch: 5000  # 160 batch of 32
+samples_per_epoch: 500  # 160 batch of 32
 batch_size: 32
 aggregate_by: ['mean']
 
