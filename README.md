@@ -1,4 +1,4 @@
-# Missing Spatial-Temporal Multimodal Traffic Data Imputation and Prediction
+# Missing Spatial-Temporal Multimodal Traffic Data Imputation
 
 ## 📌 Introduction
 This repository focuses on the **imputation and prediction of missing multimodal traffic data** using Graph Neural Network (GNN) and Recurrent Neural Network (RNN). I leveraged the **Traffic4cast NeurIPS 2022 dataset** and implemented **GRIN (Graph Recurrent Imputation Network)** to reconstruct and predict traffic data efficiently. 
